@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.hierynomus:sshj:0.17.2">
+    <CLASSES>
+      <root url="jar://D:/MavenRepo/com/hierynomus/sshj/0.17.2/sshj-0.17.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://D:/MavenRepo/com/hierynomus/sshj/0.17.2/sshj-0.17.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://D:/MavenRepo/com/hierynomus/sshj/0.17.2/sshj-0.17.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
