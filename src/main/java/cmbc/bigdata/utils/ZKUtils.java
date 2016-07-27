@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 
 public enum ZKUtils{
-    INSTANCE;
+    INSTANCE();
 
     /**
      * 初始sleep时间(毫秒)
@@ -27,20 +27,23 @@ public enum ZKUtils{
      * 最大sleep时间
      */
     private static final int MAX_SLEEP_TIME = 60000;
-
-    private static final String CONNECT_STRING = "192.168.145.129:2181,192.168.145.130:2181,192.168.145.131:2181";
     private static final int SESSION_TIMEOUT = 5000;
     private static final int CONNECTION_TIMEOUT = 5000;
     private CuratorFramework client=null;
+    private String connStr = "127.0.0.1:2181";
 
-    ZKUtils(){
+    public void setZk(String conn){
+        this.connStr = conn;
+    }
+
+    private void init(){
 
         //1.设置重试策略,重试时间计算策略sleepMs = baseSleepTimeMs * Math.max(1, random.nextInt(1 << (retryCount + 1)));
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(BASE_SLEEP_TIME, MAX_RETRIES_COUNT, MAX_SLEEP_TIME);
 
         //2.初始化客户端
         client = CuratorFrameworkFactory.builder()
-                .connectString(CONNECT_STRING)
+                .connectString(connStr)
                 .sessionTimeoutMs(SESSION_TIMEOUT)
                 .connectionTimeoutMs(CONNECTION_TIMEOUT)
                 .retryPolicy(retryPolicy)
@@ -50,13 +53,15 @@ public enum ZKUtils{
         try {
             client.blockUntilConnected();
             Logger logger = LoggerFactory.getLogger(ZKUtils.class);
-            logger.info("Zookeeper:" + CONNECT_STRING + " Connected.Continue...");
+            logger.info("Zookeeper:" + connStr + " Connected.Continue...");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public CuratorFramework getClient(){
+        if(client==null)
+            init();
         return client;
     }
 }

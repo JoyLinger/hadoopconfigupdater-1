@@ -55,6 +55,9 @@ class MainApp {
     @Option(name = "-h", usage = "Print Help Information",required = false)
     private boolean isHelp;
 
+    @Option(name = "-zk" , usage = "Zookeeper Addresses, 127.0.0.1:2181,127.0.0.2:2181, e.g",required = true)
+    private String zkStr="127.0.0.1:2181";
+
     // receives other command line parameters than options
     @Argument
     private List<String> arguments = new ArrayList<String>();
@@ -71,7 +74,7 @@ class MainApp {
                 return;
             }
 
-            app.getZKClient();
+            app.getZKClient(app.zkStr);
             if (app.pull){
                 Puller puller = new Puller(app.client,app.fileType,app.pullFile,app.objectFilePath,app.pmode);
 
@@ -92,8 +95,9 @@ class MainApp {
         }
     }
 
-    private void getZKClient() {
-        this.client = ZKUtils.INSTANCE.getClient();
+    private void getZKClient(String conn) {
+        ZKUtils.INSTANCE.setZk(conn);
+        this.client =ZKUtils.INSTANCE.getClient();
     }
 
     private void parseCmdLine(String args[]) {

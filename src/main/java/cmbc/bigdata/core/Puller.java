@@ -183,6 +183,7 @@ public class Puller {
             if(pmode == PULLMODE.ONCE){
                 String content = new String(client.getData().forPath("/"+ pullFileName));
                 FileUtils.writeStringToFile(new File(objectFileName),content,"UTF-8");
+                logger.info("Succeed! File "+ pullFileName + " has been pulled to " + objectFileName);
             }
             else if(pmode == PULLMODE.WATCH){
                 watchDataChanged();
