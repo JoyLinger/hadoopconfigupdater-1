@@ -30,7 +30,7 @@ public class XMLHandler {
 
     private Document document;
 
-    public XMLHandler(String filePath) {
+    public XMLHandler(String filePath) throws DocumentException {
         this.filePath = filePath;
         initDocument(this.filePath);
     }
@@ -112,26 +112,21 @@ public class XMLHandler {
      * @return
      * @throws DocumentException
      */
-    private void initDocument(String filePath) {
+    private void initDocument(String filePath) throws DocumentException {
         SAXReader reader = new SAXReader();
         File file = new File(filePath);
         convertDoc(filePath, reader, file);
     }
 
 
-    private void initDocument(File xmlFile) {
+    private void initDocument(File xmlFile) throws DocumentException {
         SAXReader reader = new SAXReader();
         convertDoc(filePath, reader, xmlFile);
     }
 
-    private void convertDoc(String filePath, SAXReader reader, File file) {
+    private void convertDoc(String filePath, SAXReader reader, File file) throws DocumentException {
         if (file.exists()) {
-            try {
                 document = reader.read(filePath);
-            } catch (DocumentException e) {
-                e.printStackTrace();
-                System.exit(-1);
-            }
         } else {
             document = DocumentHelper.createDocument();
         }

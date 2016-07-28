@@ -85,7 +85,7 @@ class MainApp {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception:",e);
         } finally {
             if (app !=null && app.client!= null)
                 app.client.close();
@@ -117,6 +117,7 @@ class MainApp {
 
         } catch (CmdLineException e) {
             System.err.println(e.getMessage());
+            logger.error("Exception:",e);
             System.err.println("hadoopconfigupdater [options...] arguments...");
             // print the list of available options
             parser.printUsage(System.err);

@@ -31,6 +31,7 @@ public enum ZKUtils{
     private static final int CONNECTION_TIMEOUT = 5000;
     private CuratorFramework client=null;
     private String connStr = "127.0.0.1:2181";
+    private Logger logger;
 
     public void setZk(String conn){
         this.connStr = conn;
@@ -52,10 +53,11 @@ public enum ZKUtils{
         client.start();
         try {
             client.blockUntilConnected();
-            Logger logger = LoggerFactory.getLogger(ZKUtils.class);
+            logger = LoggerFactory.getLogger(ZKUtils.class);
             logger.info("Zookeeper:" + connStr + " Connected.Continue...");
         } catch (InterruptedException e) {
             e.printStackTrace();
+            logger.error("Exception:",e);
         }
     }
 

@@ -7,6 +7,7 @@ import cmbc.bigdata.utils.XMLHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
+import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class Puller {
     private final PULLMODE pmode;
     private XMLHandler xmlHandler;
 
-    public Puller(CuratorFramework client, FILETYPE fileType, String pullFileName, String objectFilePath, PULLMODE pmode) {
+    public Puller(CuratorFramework client, FILETYPE fileType, String pullFileName, String objectFilePath, PULLMODE pmode) throws DocumentException {
         this.client = client;
         this.fileType = fileType;
         this.pullFileName = pullFileName;
@@ -51,14 +52,14 @@ public class Puller {
             throw new UnknownFormatFlagsException("Error: Wrong Watch File List format");
         }
         for( final String file : filesPath){
-            final NodeCache nodeCache = new NodeCache(client, File.pathSeparator + file);
+            final NodeCache nodeCache = new NodeCache(client,  "/"  + file);
             nodeCache.getListenable().addListener(
                     new NodeCacheListener() {
                         public void nodeChanged() throws Exception {
                             ChildData data = nodeCache.getCurrentData();
                             if (null != data) {
                                 logger.info("node data changed, new data:" + new String(nodeCache.getCurrentData().getData()));
-                                FileUtils.writeStringToFile(new File(objectFileName+File.separator+file),new String(nodeCache.getCurrentData().getData(),"UTF-8"));
+                                FileUtils.writeStringToFile(new File(objectFileName+ "/" +file),new String(nodeCache.getCurrentData().getData(),"UTF-8"));
                             }
                         }
                     }, EXECUTOR_SERVICE);
@@ -73,13 +74,13 @@ public class Puller {
      * @throws Exception
      */
     public void watchChildrenChanged() throws Exception {
-        PathChildrenCache cache = new PathChildrenCache(client, File.pathSeparator + this.pullFileName, true);
+        PathChildrenCache cache = new PathChildrenCache(client,  "/"  + this.pullFileName, true);
         cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
         cache.getListenable().addListener(new PathChildrenCacheListener() {
 
             public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
                 String configPath = event.getData().getPath();
-                String configName = configPath.substring(configPath.lastIndexOf(File.pathSeparator) + 1);
+                String configName = configPath.substring(configPath.lastIndexOf( "/" ) + 1);
                 String configContent = new String(event.getData().getData());
                 if (fileType == FILETYPE.XML) {
                     switch (event.getType()) {
@@ -159,7 +160,7 @@ public class Puller {
                     xmlHandler.getDocument().addElement("configuration");
                     for (String child : childNodes) {
                         logger.info("Pull config: " + child);
-                        keyBuilder.append(File.pathSeparator).append(pullFileName).append(File.pathSeparator).append(child);
+                        keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
                         value = new String(client.getData().forPath(keyBuilder.toString()));
                         xmlHandler.createPropInXML(child, value);
                         logger.info("Create Config name: " + child +
@@ -169,7 +170,7 @@ public class Puller {
                 } else {  //File exist, update or create element
                     for (String child : childNodes) {
                         logger.info("Pull config: " + child);
-                        keyBuilder.append(File.pathSeparator).append(pullFileName).append(File.pathSeparator).append(child);
+                        keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
                         value = new String(client.getData().forPath(keyBuilder.toString()));
                         xmlHandler.updateOrCreatePropInXML(child, value);
                         keyBuilder.setLength(0);
@@ -189,8 +190,8 @@ public class Puller {
 
         if (fileType == FILETYPE.PLAIN) {
             if(pmode == PULLMODE.ONCE){
-                String content = new String(client.getData().forPath(File.pathSeparator+ pullFileName));
-                FileUtils.writeStringToFile(new File(objectFileName),content,"UTF-8");
+                String content = new String(client.getData().forPath( "/" + pullFileName));
+                FileUtils.writeStringToFile(new File(objectFileName+"/"+pullFileName),content,"UTF-8");
                 logger.info("Succeed! File "+ pullFileName + " has been pulled to " + objectFileName);
             }
             else if(pmode == PULLMODE.WATCH){
