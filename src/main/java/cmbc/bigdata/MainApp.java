@@ -5,19 +5,18 @@ import cmbc.bigdata.constants.FILETYPE;
 import cmbc.bigdata.constants.PULLMODE;
 import cmbc.bigdata.core.Puller;
 import cmbc.bigdata.core.Pusher;
-import cmbc.bigdata.utils.XMLHandler;
 import cmbc.bigdata.utils.ZKUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-
-import static org.kohsuke.args4j.ExampleMode.ALL;
 
 /**
  * Created by huangpengcheng on 2016/7/21 0021.
@@ -37,7 +36,7 @@ class MainApp {
     @Option(name = "-pullmode", usage = "Pull Mode: WATCH/ONCE", depends = {"-pull"} )
     private PULLMODE pmode=PULLMODE.ONCE;
 
-    @Option(name = "-pullfile", usage = "Set Which Config File should be pulled", depends = {"-pull"})
+    @Option(name = "-pullfile", usage = "Set Which Config File should be pulled, can be a list: hdfs-site.xml,core-site.xml", depends = {"-pull"})
     private String pullFile;
 
     @Option(name = "-push", usage = "Set the Push Mode",forbids = {"-pull"},depends = {"-pushfile"})
@@ -46,7 +45,7 @@ class MainApp {
     @Option(name = "-pushfile", usage = "File to be pushed. ", depends = {"-push"})
     private File pushFile;
 
-    @Option(name = "-o", usage = "The place where file pulled to be saved", depends = {"-pull"})
+    @Option(name = "-o", usage = "The dir where file pulled to be saved", depends = {"-pull"})
     private String objectFilePath;
 
     @Option(name = "-v", usage = "Print file updater version",required = false)
@@ -77,9 +76,7 @@ class MainApp {
             app.getZKClient(app.zkStr);
             if (app.pull){
                 Puller puller = new Puller(app.client,app.fileType,app.pullFile,app.objectFilePath,app.pmode);
-
                 puller.pullFromZK();
-
             }
 
             if (app.push){

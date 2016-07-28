@@ -30,7 +30,7 @@ public class Pusher {
 
     public void pushToZK() throws Exception {
         logger.error("Push mode selected.");
-        String parentPath = "/" + pushFile.getName();
+        String parentPath = File.pathSeparator + pushFile.getName();
 
         if (fileType == FILETYPE.PLAIN) {
             WholeFileHandler fileHandler = new WholeFileHandler(this.pushFile);
@@ -47,7 +47,7 @@ public class Pusher {
             //If parent path doesn't exist,Create it
             //Clear the children of the path
             if (client.checkExists().forPath(parentPath) != null) {
-                client.delete().deletingChildrenIfNeeded().forPath("/" + pushFile.getName());
+                client.delete().deletingChildrenIfNeeded().forPath(File.pathSeparator + pushFile.getName());
             }
 
             //Create the Path
@@ -55,7 +55,7 @@ public class Pusher {
 
             //Push the KV into zk
             for (Map.Entry<String, String> entry : kvMap.entrySet()) {
-                String key = "/" + pushFile.getName() + "/" + entry.getKey();
+                String key = File.pathSeparator + pushFile.getName() + File.pathSeparator + entry.getKey();
                 byte[] value = entry.getValue().getBytes();
                 if (client.checkExists().forPath(key) == null) {
                     // Create for Non-Exist node
