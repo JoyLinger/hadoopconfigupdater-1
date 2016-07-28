@@ -1,3 +1,4 @@
+Use Zookeeper to distribute hadoop config file (Any file less than 1MB, actually)
     hadoopconfigupdater [options...] arguments...
     -h                         : Print Help Information (default: false)
     -o VAL                     : The dir where file pulled to be saved
