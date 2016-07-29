@@ -47,7 +47,7 @@ public class Puller {
      * @throws Exception
      */
     public void watchDataChanged() throws Exception {
-        String[]  filesPath = this.pullFileName.split(",");
+        String[]  filesPath = pullFileName.split(",");
         if (filesPath.length == 0) {
             throw new UnknownFormatFlagsException("Error: Wrong Watch File List format");
         }
@@ -58,8 +58,10 @@ public class Puller {
                         public void nodeChanged() throws Exception {
                             ChildData data = nodeCache.getCurrentData();
                             if (null != data) {
-                                logger.info("node data changed, new data:" + new String(nodeCache.getCurrentData().getData()));
+                                logger.info("node data changed, new data:\n" + new String(nodeCache.getCurrentData().getData()));
                                 FileUtils.writeStringToFile(new File(objectFileName+ "/" +file),new String(nodeCache.getCurrentData().getData(),"UTF-8"));
+                                logger.info(objectFileName+"/"+file + " has been saved from this pulling");
+
                             }
                         }
                     }, EXECUTOR_SERVICE);
@@ -152,33 +154,7 @@ public class Puller {
     public void pullFromZK() throws Exception {
         if (fileType == FILETYPE.XML) {
             if(pmode == PULLMODE.ONCE) {
-                List<String> childNodes = client.getChildren().forPath("/" + pullFileName);
-                StringBuilder keyBuilder = new StringBuilder();
-                String value;
-                if (!(new File(pullFileName)).exists()) {
-                    //File nonexist, only creat e element
-                    xmlHandler.getDocument().addElement("configuration");
-                    for (String child : childNodes) {
-                        logger.info("Pull config: " + child);
-                        keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
-                        value = new String(client.getData().forPath(keyBuilder.toString()));
-                        xmlHandler.createPropInXML(child, value);
-                        logger.info("Create Config name: " + child +
-                                " ,Config value:" + value.replace(CONSTANTSUTIL.VALUE_DESC_SPLIT, ", Config description:"));
-                        keyBuilder.setLength(0);
-                    }
-                } else {  //File exist, update or create element
-                    for (String child : childNodes) {
-                        logger.info("Pull config: " + child);
-                        keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
-                        value = new String(client.getData().forPath(keyBuilder.toString()));
-                        xmlHandler.updateOrCreatePropInXML(child, value);
-                        keyBuilder.setLength(0);
-                        logger.info("Update Config name: " + child +
-                                " ,Config value:" + value.replace(CONSTANTSUTIL.VALUE_DESC_SPLIT, ", Config description:"));
-                    }
-                }
-                xmlHandler.writeToXML();
+                pullXMLOnce();
             }
             else if(pmode == PULLMODE.WATCH){
                 watchChildrenChanged();
@@ -190,9 +166,7 @@ public class Puller {
 
         if (fileType == FILETYPE.PLAIN) {
             if(pmode == PULLMODE.ONCE){
-                String content = new String(client.getData().forPath( "/" + pullFileName));
-                FileUtils.writeStringToFile(new File(objectFileName+"/"+pullFileName),content,"UTF-8");
-                logger.info("Succeed! File "+ pullFileName + " has been pulled to " + objectFileName);
+                pullPlainOnce();
             }
             else if(pmode == PULLMODE.WATCH){
                 CountDownLatch latch = new CountDownLatch(1);
@@ -202,6 +176,49 @@ public class Puller {
             else{
                 throw new UnsupportedOperationException();
             }
+        }
+    }
+
+    private void pullXMLOnce() throws Exception {
+        List<String> childNodes = client.getChildren().forPath("/" + pullFileName);
+        StringBuilder keyBuilder = new StringBuilder();
+        String value;
+        if (!(new File(pullFileName)).exists()) {
+            //File nonexist, only creat e element
+            xmlHandler.getDocument().addElement("configuration");
+            for (String child : childNodes) {
+                logger.info("Pull config: " + child);
+                keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
+                value = new String(client.getData().forPath(keyBuilder.toString()));
+                xmlHandler.createPropInXML(child, value);
+                logger.info("Create Config name: " + child +
+                        " ,Config value:" + value.replace(CONSTANTSUTIL.VALUE_DESC_SPLIT, ", Config description:"));
+                keyBuilder.setLength(0);
+            }
+        } else {  //File exist, update or create element
+            for (String child : childNodes) {
+                logger.info("Pull config: " + child);
+                keyBuilder.append( "/" ).append(pullFileName).append( "/" ).append(child);
+                value = new String(client.getData().forPath(keyBuilder.toString()));
+                xmlHandler.updateOrCreatePropInXML(child, value);
+                keyBuilder.setLength(0);
+                logger.info("Update Config name: " + child +
+                        " ,Config value:" + value.replace(CONSTANTSUTIL.VALUE_DESC_SPLIT, ", Config description:"));
+            }
+        }
+        xmlHandler.writeToXML();
+    }
+
+    private void pullPlainOnce() throws Exception {
+        String[]  filesPath = pullFileName.split(",");
+        if (filesPath.length == 0) {
+            throw new UnknownFormatFlagsException("Error: Wrong Watch File List format");
+        }
+
+        for(String file : filesPath){
+            String content = new String(client.getData().forPath( "/" + file));
+            FileUtils.writeStringToFile(new File(objectFileName+"/"+file),content,"UTF-8");
+            logger.info("Succeed! File "+ file + " has been pulled to " + objectFileName+"/"+file);
         }
     }
 }
