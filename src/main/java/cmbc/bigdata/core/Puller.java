@@ -64,9 +64,11 @@ public class Puller {
                                 logger.info("node data changed, new data:\n" + new String(nodeCache.getCurrentData().getData()));
                                 FileUtils.writeStringToFile(new File(file),new String(nodeCache.getCurrentData().getData()), "UTF-8");
                                 logger.info(file + " has been saved from this pulling");
-                                new ProcessExecutor().command(callBack,file).redirectOutput(
-                                        Slf4jStream.of(logger).asInfo()
-                                ).execute();
+                                if (callBack!=null){
+                                    new ProcessExecutor().command(callBack,file).redirectOutput(
+                                            Slf4jStream.of(logger).asInfo()
+                                    ).execute();
+                                }
                             }
                         }
                     }, EXECUTOR_SERVICE);
