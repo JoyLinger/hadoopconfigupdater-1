@@ -21,14 +21,9 @@ public class WholeFileHandler {
         this.wholeFile = new File(filePath);
     }
 
-    public WholeFileHandler(File hostsFile){
+    public WholeFileHandler(File hostsFile) throws IOException {
         this.wholeFile = hostsFile;
-        try {
-            this.filePath = hostsFile.getCanonicalPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        this.filePath = hostsFile.getCanonicalPath();
     }
 
     public HashMap<String, String> parseHosts() throws IOException {
