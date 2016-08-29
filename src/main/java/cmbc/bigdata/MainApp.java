@@ -14,14 +14,13 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by huangpengcheng on 2016/7/21 0021.
  */
-class MainApp {
+public class MainApp {
 
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
 
@@ -30,23 +29,26 @@ class MainApp {
     @Option(name = "-t", usage = "File type: HOSTS/XML/UNKNOWN.")
     private FILETYPE fileType=FILETYPE.PLAIN;
 
-    @Option(name = "-pull", usage = "Set the Pull Mode",forbids = {"-push"},depends = {"-pullfile" })
-    private boolean pull=false;
-
     @Option(name = "-pullmode", usage = "Pull Mode: WATCH/ONCE", depends = {"-pull"} )
     private PULLMODE pmode=PULLMODE.ONCE;
 
-    @Option(name = "-pullfile", usage = "Set Which Config File should be pulled, can be a list: hdfs-site.xml,core-site.xml", depends = {"-pull"})
-    private String pullFile;
+    @Option(name = "-pull", usage = "Set the Pull Mode",forbids = {"-push"},depends = {"-pullfiles" })
+    private boolean pull=false;
 
-    @Option(name = "-push", usage = "Set the Push Mode",forbids = {"-pull"},depends = {"-pushfile"})
+    @Option(name = "-pullfiles", usage = "Set which files should be pull down(depends on the name) and where pulled Files should be saved, " +
+            "can be a list: /etc/hadoop/hdfs-site.xml,./etc/core-site.xml " +
+            "will pull hdfs-site.xml and core-site.xml, and then saved to the location specified",
+            depends = {"-pull"})
+    private String pullFiles;
+
+    @Option(name = "-push", usage = "Set the Push Mode",forbids = {"-pull"},depends = {"-pushfiles"})
     private boolean push=false;
 
-    @Option(name = "-pushfile", usage = "File to be pushed. ", depends = {"-push"})
-    private File pushFile;
-
-    @Option(name = "-o", usage = "The dir where file pulled to be saved", depends = {"-pull"})
-    private String objectFilePath;
+    @Option(name = "-pushfiles", usage = "Files to be pushed." +
+            "Both Relative and absolute path are supported .A comma as a separator." +
+            "e.g. /etc/hosts,/etc/services,./stub.sh,makejar.sh  ",
+            depends = {"-push"})
+    private String pushFiles;
 
     @Option(name = "-v", usage = "Print file updater version",required = false)
     private boolean isVersion;
@@ -54,8 +56,12 @@ class MainApp {
     @Option(name = "-h", usage = "Print Help Information",required = false)
     private boolean isHelp;
 
-    @Option(name = "-zk" , usage = "Zookeeper Addresses, 127.0.0.1:2181,127.0.0.2:2181, e.g",required = true)
+    @Option(name = "-zk" , usage = "Zookeeper Addresses List, e.g, 127.0.0.1:2181,127.0.0.2:2181")
     private String zkStr="127.0.0.1:2181";
+
+    @Option(name = "-callBack" , usage = "Callback command executed when pull in watch mode, " +
+            "filename(absolute path) will be passed as a parameter", depends = {"-pull"})
+    private String callBack;
 
     // receives other command line parameters than options
     @Argument
@@ -69,18 +75,17 @@ class MainApp {
             app = new MainApp();
             app.parseCmdLine(args);
             if (app.isVersion){
-                System.out.println("Hadoop File Updater, Version:" + CONSTANTSUTIL.VERSION + ", Copyright CMBC, Author : Huang Pengcheng");
                 return;
             }
 
             app.getZKClient(app.zkStr);
             if (app.pull){
-                Puller puller = new Puller(app.client,app.fileType,app.pullFile,app.objectFilePath,app.pmode);
+                Puller puller = new Puller(app.client,app.fileType,app.pullFiles,app.pmode,app.callBack);
                 puller.pullFromZK();
             }
 
             if (app.push){
-                Pusher pusher = new Pusher(app.client,app.fileType,app.pushFile);
+                Pusher pusher = new Pusher(app.client,app.fileType,app.pushFiles);
                 pusher.pushToZK();
             }
 
@@ -102,26 +107,37 @@ class MainApp {
         try {
             parser.parseArgument(args);
 
+            //Pull or Push mode must be specified.
             if(!isHelp && !isVersion && !pull && !push) {
                 throw new CmdLineException(parser,"Error:One of the Pull or Push mode must be selected.", new Throwable());
             }
 
+            //ZK addresses must be set
+            if (!isHelp && !isVersion && zkStr.equals("127.0.0.1:2181")){
+                logger.warn("Default ZK Address(127.0.0.1:2181) is used");
+            }
+
+            // If help is needed
             if(isHelp){
                 throw new CmdLineException(parser,"", new Throwable());
             }
 
+            //File type must be set
             if (fileType==FILETYPE.UNKNOWN){
                 throw new CmdLineException(parser,"Error: File type (-t) must be specified", new Throwable());
             }
 
-
         } catch (CmdLineException e) {
+            System.err.println(e.getMessage());
+            System.out.println("Hadoop File Updater, Version:" + CONSTANTSUTIL.VERSION + ", Copyright CMBC, Author : huangpengcheng@cmbc.com.cn");
             System.err.println("hadoopconfigupdater [options...] arguments...");
             // print the list of available options
             parser.printUsage(System.err);
             System.err.println();
-
             System.exit(-1);
+        }
+        finally {
+            System.out.println("Hadoop File Updater, Version:" + CONSTANTSUTIL.VERSION + ", Copyright CMBC, Author : huangpengcheng@cmbc.com.cn");
         }
     }
         public CuratorFramework getClient() {
