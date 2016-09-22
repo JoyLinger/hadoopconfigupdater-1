@@ -14,7 +14,10 @@ import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.stream.slf4j.Slf4jStream;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UnknownFormatFlagsException;
 import java.util.concurrent.CountDownLatch;
@@ -62,6 +65,7 @@ public class Puller {
                             ChildData data = nodeCache.getCurrentData();
                             if (null != data) {
                                 logger.info("node data changed, new data:\n" + new String(nodeCache.getCurrentData().getData()));
+                                bakFile(file);
                                 FileUtils.writeStringToFile(new File(file),new String(nodeCache.getCurrentData().getData()), "UTF-8");
                                 logger.info(file + " has been saved from this pulling");
                                 if (callBack!=null){
@@ -226,9 +230,16 @@ public class Puller {
 
         for(String file : pullFiles){
             String fileName = file.substring(file.lastIndexOf('/') + 1);
+            bakFile(fileName);
             String content = new String(client.getData().forPath( "/" + fileName));
             FileUtils.writeStringToFile(new File(file),content,"UTF-8");
             logger.info("Succeed! File "+ file + " has been pulled to " + file);
+        }
+    }
+
+    private void bakFile(String filePath) throws IOException {
+        if(new File(filePath).exists()){
+            FileUtils.copyFile(new File(filePath),new File(filePath+".bak"+new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())));
         }
     }
 }
