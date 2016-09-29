@@ -31,11 +31,11 @@ public class Pusher {
     public void pushToZK() throws Exception {
         logger.error("Push mode selected.");
         System.out.println();
-        for(String pushFilePath : pushFiles){
+        for (String pushFilePath : pushFiles) {
             File pushFile = new File(pushFilePath);
-            String parentPath= "/" +  pushFilePath.substring(pushFilePath.lastIndexOf('/') + 1);
+            String parentPath = "/" + pushFilePath.substring(pushFilePath.lastIndexOf('/') + 1);
 
-            if(!pushFile.exists()){
+            if (!pushFile.exists()) {
                 logger.error("Error:" + pushFilePath + "doesn't exist, Skip it and push next File:");
             }
 
@@ -44,17 +44,16 @@ public class Pusher {
                 if (client.checkExists().forPath(parentPath) == null) {
                     client.create().forPath(parentPath);
                 }
-                client.setData().forPath(parentPath,fileHandler.fileToBytes());
-                logger.info("Succeed!" + pushFile.getCanonicalPath() + " has been pushed to /" + CONSTANTSUTIL.DEFAULT_NS + parentPath );
-            }
-            else if (fileType == FILETYPE.XML) {
+                client.setData().forPath(parentPath, fileHandler.fileToBytes());
+                logger.info("Succeed!" + pushFile.getCanonicalPath() + " has been pushed to /" + CONSTANTSUTIL.DEFAULT_NS + parentPath);
+            } else if (fileType == FILETYPE.XML) {
                 HashMap<String, String> kvMap = new HashMap<String, String>();
                 XMLHandler xmlHandler = new XMLHandler(pushFile);
                 kvMap = xmlHandler.parseConfXML();
                 //If parent path doesn't exist,Create it
                 //Clear the children of the path
                 if (client.checkExists().forPath(parentPath) != null) {
-                    client.delete().deletingChildrenIfNeeded().forPath( "/"  + pushFile.getName());
+                    client.delete().deletingChildrenIfNeeded().forPath("/" + pushFile.getName());
                 }
 
                 //Create the Path
@@ -62,7 +61,7 @@ public class Pusher {
 
                 //Push the KV into zk
                 for (Map.Entry<String, String> entry : kvMap.entrySet()) {
-                    String key =  "/"  + pushFile.getName() +  "/"  + entry.getKey();
+                    String key = "/" + pushFile.getName() + "/" + entry.getKey();
                     byte[] value = entry.getValue().getBytes();
                     if (client.checkExists().forPath(key) == null) {
                         // Create for Non-Exist node
@@ -73,8 +72,7 @@ public class Pusher {
                         logger.info("Update Path:" + key + "\t Value:" + new String(value));
                     }
                 }
-            }
-            else
+            } else
                 logger.error("Unknown type. Aborted and Exiting...");
         }
     }
