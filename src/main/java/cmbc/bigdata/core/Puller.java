@@ -245,8 +245,10 @@ public class Puller {
 
     /**
      * Append different data from childData to local file.
+     *
      * @param childData The data of childData
      * @param localFilePath The local file path
+     *
      * */
     public void mergeChildDataIntoLocalFile (String childData, String localFilePath) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
