@@ -251,7 +251,7 @@ public class Puller {
     public void mergeChildDataIntoLocalFile (String childData, String localFilePath) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         File localFile = new File(localFilePath);
-        String[] data = childData.split("\\n");
+        String[] ChildDataSplits = childData.split("\\n");
         List<String> localFileData = new ArrayList<String>();
         try {
             localFileData = FileUtils.readLines(localFile,"utf-8");
@@ -261,10 +261,10 @@ public class Puller {
             e.printStackTrace();
         }
 
-        for(String item : data){
-            if (!localFileData.contains(item) && !item.startsWith("#")){
+        for(String split : ChildDataSplits){
+            if (!localFileData.contains(split) && !split.startsWith("#")){
                 try {
-                    FileUtils.writeStringToFile(localFile, item + "\n", "UTF-8", true);
+                    FileUtils.writeStringToFile(localFile, split + "\n", "UTF-8", true);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
