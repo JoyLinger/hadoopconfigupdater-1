@@ -16,6 +16,7 @@ import org.zeroturnaround.exec.stream.slf4j.Slf4jStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UnknownFormatFlagsException;
@@ -240,5 +241,36 @@ public class Puller {
         if(new File(filePath).exists()){
             FileUtils.copyFile(new File(filePath),new File(filePath+".bak"+new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())));
         }
+    }
+
+    /**
+     * Append different data from childData to local file.
+     * @param childData The data of childData
+     * @param localFilePath The local file path
+     * */
+    public void mergeChildDataIntoLocalFile (String childData, String localFilePath) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        File localFile = new File(localFilePath);
+        String[] data = childData.split("\\n");
+        List<String> localFileData = new ArrayList<String>();
+        try {
+            localFileData = FileUtils.readLines(localFile,"utf-8");
+            FileUtils.writeStringToFile(localFile, "#-- [" + sdf.format(System.currentTimeMillis()) + "] Add new hostname --\n", "UTF-8", true);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for(String item : data){
+            if (!localFileData.contains(item) && !item.startsWith("#")){
+                try {
+                    FileUtils.writeStringToFile(localFile, item + "\n", "UTF-8", true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
     }
 }
