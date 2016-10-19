@@ -262,6 +262,7 @@ public class Puller {
         }
 
         for(String split : ChildDataSplits){
+            // if local file does not contain childData and not start with "#", appending childData to local file.
             if (!localFileData.contains(split) && !split.startsWith("#")){
                 try {
                     FileUtils.writeStringToFile(localFile, split + "\n", "UTF-8", true);
