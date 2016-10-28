@@ -1,5 +1,6 @@
 package cmbc.bigdata.utils;
 
+import cmbc.bigdata.constants.CHANGEMODE;
 import cmbc.bigdata.constants.CONSTANTSUTIL;
 import cmbc.bigdata.constants.FILETYPE;
 import cmbc.bigdata.constants.PULLMODE;
@@ -27,6 +28,9 @@ public class CommandLineValues {
 
     @Option(name = "-pull", usage = "Set the Pull Mode", forbids = {"-push"}, depends = {"-pullfiles"})
     private boolean pull = false;
+
+    @Option(name = "-c", usage = "Change Mode: OVERWRITE/APPEND", depends = {"-pull"})
+    private CHANGEMODE cmode = CHANGEMODE.OVERWRITE;
 
     @Option(name = "-pullfiles", usage = "Set which files should be pull down(depends on the name) and where pulled Files should be saved, " +
             "can be a list: /etc/hadoop/hdfs-site.xml,./etc/core-site.xml " +
@@ -149,5 +153,9 @@ public class CommandLineValues {
 
     public String getCallBack() {
         return callBack;
+    }
+
+    public CHANGEMODE getChangeMode() {
+        return cmode;
     }
 }

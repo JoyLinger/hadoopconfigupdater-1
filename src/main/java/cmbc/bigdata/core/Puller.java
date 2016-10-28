@@ -1,5 +1,6 @@
 package cmbc.bigdata.core;
 
+import cmbc.bigdata.constants.CHANGEMODE;
 import cmbc.bigdata.constants.CONSTANTSUTIL;
 import cmbc.bigdata.constants.FILETYPE;
 import cmbc.bigdata.constants.PULLMODE;
@@ -36,13 +37,15 @@ public class Puller {
     private final PULLMODE pmode;
     private final String callBack;
     private XMLHandler xmlHandler;
+    private final CHANGEMODE cmode;
 
-    public Puller(CuratorFramework client, FILETYPE fileType, String pullFileName, PULLMODE pmode, String callBack) throws DocumentException {
+    public Puller(CuratorFramework client, FILETYPE fileType, String pullFileName, PULLMODE pmode, String callBack, CHANGEMODE cmode) throws DocumentException {
         this.client = client;
         this.fileType = fileType;
         this.pullFiles= pullFileName.split(",");
         this.pmode = pmode;
         this.callBack = callBack;
+        this.cmode = cmode;
         if (fileType==FILETYPE.XML)
             this.xmlHandler = new XMLHandler(pullFileName);
         if (this.pullFiles.length == 0) {
@@ -66,7 +69,12 @@ public class Puller {
                             if (null != data) {
                                 logger.info("node data changed, new data:\n" + new String(nodeCache.getCurrentData().getData()));
                                 bakFile(file);
-                                FileUtils.writeStringToFile(new File(file),new String(nodeCache.getCurrentData().getData()), "UTF-8");
+                                //according to the Change Mode,choose suitable function
+                                if (cmode == CHANGEMODE.OVERWRITE) {
+                                    overwriteChildDataToLocalFile(file,new String(data.getData()));
+                                }else if (cmode == CHANGEMODE.APPEND) {
+                                    appendChildDataToLocalFile(new String(data.getData()),file);
+                                }
                                 logger.info(file + " has been saved from this pulling");
                                 if (callBack!=null){
                                     new ProcessExecutor().command(callBack,file).redirectOutput(
@@ -231,8 +239,14 @@ public class Puller {
         for(String file : pullFiles){
             String fileName = file.substring(file.lastIndexOf('/') + 1);
             bakFile(fileName);
+            //get fileName's content
             String content = new String(client.getData().forPath( "/" + fileName));
-            FileUtils.writeStringToFile(new File(file),content,"UTF-8");
+            //according to the Change Mode,choose suitable function
+            if (cmode == CHANGEMODE.OVERWRITE){
+                overwriteChildDataToLocalFile(file,content);
+            }else if(cmode == CHANGEMODE.APPEND){
+                appendChildDataToLocalFile(content,file);
+            }
             logger.info("Succeed! File "+ file + " has been pulled to " + file);
         }
     }
@@ -250,7 +264,7 @@ public class Puller {
      * @param localFilePath The local file path
      *
      * */
-    public void mergeChildDataIntoLocalFile (String childData, String localFilePath) {
+    public void appendChildDataToLocalFile (String childData, String localFilePath) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         File localFile = new File(localFilePath);
         String[] ChildDataSplits = childData.split("\\n");
@@ -276,4 +290,16 @@ public class Puller {
         }
 
     }
+
+    /**
+     * Overwrite different data from childData to local file.
+     *
+     * @param file The local file path
+     * @param content The data of znode childData
+     * @throws Exception IOException
+     */
+    public void overwriteChildDataToLocalFile(String file, String content) throws Exception {
+        FileUtils.writeStringToFile(new File(file),content, "UTF-8");
+    }
+
 }
