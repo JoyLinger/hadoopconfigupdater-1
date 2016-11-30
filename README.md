@@ -2,6 +2,8 @@ Use Zookeeper to distribute hadoop config file (Any file less than 1MB, actually
 
     Hadoop File Updater, Version:1.1, Copyright CMBC, Author : huangpengcheng@cmbc.com.cn
     hadoopconfigupdater [options...] arguments...
+    
+       -c [OVERWRITE | APPEND]    : Change Mode: OVERWRITE/APPEND (default: OVERWRITE)
        -callBack VAL              : Callback command executed when pull in watch
                                     mode, filename(absolute path) will be passed as a
                                     parameter
