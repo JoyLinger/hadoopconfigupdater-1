@@ -271,7 +271,7 @@ public class Puller {
         List<String> localFileData = new ArrayList<String>();
         try {
             localFileData = FileUtils.readLines(localFile,"utf-8");
-            FileUtils.writeStringToFile(localFile, "#-- [" + sdf.format(System.currentTimeMillis()) + "] Add new hostname --\n", "UTF-8", true);
+            FileUtils.writeStringToFile(localFile, "\n#-- [" + sdf.format(System.currentTimeMillis()) + "] Add new hostname --\n", "UTF-8", true);
 
         } catch (IOException e) {
             e.printStackTrace();

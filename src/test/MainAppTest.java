@@ -7,6 +7,9 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Enumeration;
+import java.util.Properties;
+
 /**
  * Created by huangpengcheng on 2016/7/21 0021.
  */
@@ -17,7 +20,14 @@ public class MainAppTest {
     private static CuratorFramework client;
 
     public static void main(String[] args) {
-        args = testPushFile();
+        args = testPullFile();
+//        args = testPushFile();
+        Properties p = System.getProperties();
+        Enumeration ee = p.propertyNames();
+        while(ee.hasMoreElements()){
+            String s= ee.nextElement().toString();
+            System.out.println(s+ "===> " + System.getProperty(s));
+        }
         //Push Main Process
         try {
             CommandLineValues cm = new CommandLineValues(args);
@@ -68,7 +78,7 @@ public class MainAppTest {
         String[] args = new String[5];
         args[0] = "-push";
         args[1] = "-pushfiles";
-        args[2] = "/root/hosts";
+        args[2] = "/usr/hadoop/etc/hadoop/core-site.xml,/usr/hadoop/etc/hadoop/hdfs-site.xml,/usr/hadoop/etc/hadoop/yarn-site.xml,/usr/hadoop/etc/hadoop/mapred-site.xml";
         args[3] = "-zk";
         args[4] = "192.168.188.2:2181";
         return args;
@@ -76,20 +86,19 @@ public class MainAppTest {
 
     /**
      * 2. pull file.
-     * @param pmode pull mode.
-     * @param cmode change mode.
      */
-    private static String[] testPullFile(String pmode, String cmode){
+    private static String[] testPullFile(){
         String[] args = new String[9];
         args[0] = "-pull";
         args[1] = "-pullfiles";
-        args[2] = "/etc/hosts";
+        args[2] = "/tmp/hosts";
+//        args[2] = "C:\\Windows\\System32\\drivers\\etc/hosts";
         args[3] = "-zk";
-        args[4] = "192.168.188.2:2181";
+        args[4] = "172.16.2.203:2181";
         args[5] = "-pullmode";
-        args[6] = pmode;
+        args[6] = "WATCH";
         args[7] = "-c";
-        args[8] = cmode;
+        args[8] = "APPEND";
         return args;
     }
 
