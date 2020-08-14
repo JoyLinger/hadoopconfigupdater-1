@@ -60,6 +60,10 @@ public class CommandLineValues {
             "filename(absolute path) will be passed as a parameter", depends = {"-pull"})
     private String callBack;
 
+    @Option(name = "-parentZnode", usage = "Extra parent znode, e.g, /nameservice1 means zookeeper " +
+            "client's namespace will be set to /"+CONSTANTSUTIL.DEFAULT_NS+"/nameservice1")
+    private String parentZnode;
+
 
     public CommandLineValues(String... args) {
         parser = new CmdLineParser(this);
@@ -158,4 +162,9 @@ public class CommandLineValues {
     public CHANGEMODE getChangeMode() {
         return cmode;
     }
+
+    public String getParentZnode() {
+        return parentZnode;
+    }
+
 }

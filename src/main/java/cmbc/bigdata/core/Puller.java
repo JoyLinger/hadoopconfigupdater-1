@@ -17,10 +17,7 @@ import org.zeroturnaround.exec.stream.slf4j.Slf4jStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UnknownFormatFlagsException;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -245,9 +242,10 @@ public class Puller {
             if (cmode == CHANGEMODE.OVERWRITE){
                 overwriteChildDataToLocalFile(file,content);
             }else if(cmode == CHANGEMODE.APPEND){
+//                appendChildDataToLocalFileBak(content,file);
                 appendChildDataToLocalFile(content,file);
             }
-            logger.info("Succeed! File "+ file + " has been pulled to " + file);
+            logger.info("Succeed! Znode /"+ client.getNamespace()+"/"+fileName + " has been pulled to " + file);
         }
     }
 
@@ -265,6 +263,72 @@ public class Puller {
      *
      * */
     public void appendChildDataToLocalFile (String childData, String localFilePath) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Map<String,String> cMap = new LinkedHashMap<String, String>();
+        String[] childLineContentArray = childData.split("\\n");
+        for(String clc : childLineContentArray){
+            if(!clc.startsWith("#")) {
+                String[] cSplits = clc.split(" +");
+                if (cSplits.length == 2) {
+                    String ip = cSplits[0];
+                    String host = cSplits[1].replace("\r", "");
+                    cMap.put(ip, host);
+                }
+            }
+        }
+        File localFile = new File(localFilePath);
+        List<String> localLineContentList = new ArrayList<String>();
+        StringBuilder localFileContent = new StringBuilder();
+        Map<String,String> lMap = new LinkedHashMap<String, String>();
+        try {
+            localLineContentList = FileUtils.readLines(localFile,"utf-8");
+            localFileContent.append(FileUtils.readFileToString(localFile,"UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for(String llc : localLineContentList){
+            if(!llc.startsWith("#")) {
+                String[] cSplits = llc.split(" +");
+                if (cSplits.length == 2) {
+                    String ip = cSplits[0];
+                    String host = cSplits[1];
+                    lMap.put(ip, host);
+                }
+            }
+        }
+        boolean flag = true;
+        for(String childIp : cMap.keySet()){
+            if(lMap.containsKey(childIp)){
+                if(! lMap.get(childIp).equals(cMap.get(childIp))){
+                    // update
+                    int startIndex = localFileContent.indexOf(childIp);
+                    int endIndex = localFileContent.indexOf("\n",startIndex);
+                    localFileContent = localFileContent.replace(startIndex,endIndex,"# Update hostname\n"
+                            + childIp + " " + cMap.get(childIp));
+                }
+            }else{
+                if(flag){
+                    localFileContent.append("\n#-- [").append(sdf.format(System.currentTimeMillis())).append("] Add new hostname --");
+                    flag = false;
+                }
+                localFileContent.append("\n").append(childIp).append(" ").append(cMap.get(childIp));
+            }
+            try {
+                FileUtils.writeStringToFile(localFile, localFileContent.toString(), "UTF-8");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+    /**
+     * Append different data from childData to local file.
+     *
+     * @param childData The data of childData
+     * @param localFilePath The local file path
+     *
+     * */
+    public void appendChildDataToLocalFileBak (String childData, String localFilePath) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         File localFile = new File(localFilePath);
         String[] ChildDataSplits = childData.split("\\n");

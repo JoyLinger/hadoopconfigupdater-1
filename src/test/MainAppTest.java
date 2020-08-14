@@ -20,14 +20,14 @@ public class MainAppTest {
     private static CuratorFramework client;
 
     public static void main(String[] args) {
-        args = testPullFile();
-//        args = testPushFile();
-        Properties p = System.getProperties();
-        Enumeration ee = p.propertyNames();
-        while(ee.hasMoreElements()){
-            String s= ee.nextElement().toString();
-            System.out.println(s+ "===> " + System.getProperty(s));
-        }
+//        args = testPullFile();
+        args = testPushFile();
+//        Properties p = System.getProperties();
+//        Enumeration ee = p.propertyNames();
+//        while(ee.hasMoreElements()){
+//            String s= ee.nextElement().toString();
+//            System.out.println(s+ "===> " + System.getProperty(s));
+//        }
         //Push Main Process
         try {
             CommandLineValues cm = new CommandLineValues(args);
@@ -35,7 +35,7 @@ public class MainAppTest {
             cm.parseCmd();
             if (cm.isVersion()) return;
 
-            getZKClient(cm.getZkStr());
+            getZKClient(cm.getZkStr(), cm.getParentZnode());
             if (cm.isPull()){
                 Puller puller = new Puller(client,cm.getFileType(),cm.getPullFiles(),
                         cm.getPullMode(),cm.getCallBack(),cm.getChangeMode());
@@ -55,8 +55,8 @@ public class MainAppTest {
         }
     }
 
-    private static void getZKClient(String conn) {
-        ZKUtils.INSTANCE.setZk(conn);
+    private static void getZKClient(String conn, String parentZnode) {
+        ZKUtils.INSTANCE.setZk(conn, parentZnode);
         client =ZKUtils.INSTANCE.getClient();
     }
 
@@ -75,12 +75,21 @@ public class MainAppTest {
      */
     private static String[] testPushFile(){
 
-        String[] args = new String[5];
+        String[] args = new String[7];
+//        args[0] = "-push";
+//        args[1] = "-pushfiles";
+//        args[2] = "/usr/hadoop/etc/hadoop/core-site.xml,/usr/hadoop/etc/hadoop/hdfs-site.xml,/usr/hadoop/etc/hadoop/yarn-site.xml,/usr/hadoop/etc/hadoop/mapred-site.xml";
+//        args[3] = "-zk";
+//        args[4] = "192.168.188.2:2181";
+
         args[0] = "-push";
         args[1] = "-pushfiles";
-        args[2] = "/usr/hadoop/etc/hadoop/core-site.xml,/usr/hadoop/etc/hadoop/hdfs-site.xml,/usr/hadoop/etc/hadoop/yarn-site.xml,/usr/hadoop/etc/hadoop/mapred-site.xml";
+//        args[2] = "/tmp/hosts";
+        args[2] = "C:\\Windows\\System32\\drivers\\etc/hosts";
         args[3] = "-zk";
-        args[4] = "192.168.188.2:2181";
+        args[4] = "192.168.1.150:2181";
+        args[5] = "-parentZnode";
+        args[6] = "   namespace2";
         return args;
     }
 
@@ -88,17 +97,19 @@ public class MainAppTest {
      * 2. pull file.
      */
     private static String[] testPullFile(){
-        String[] args = new String[9];
+        String[] args = new String[11];
         args[0] = "-pull";
         args[1] = "-pullfiles";
-        args[2] = "/tmp/hosts";
-//        args[2] = "C:\\Windows\\System32\\drivers\\etc/hosts";
+//        args[2] = "/root/hosts";
+        args[2] = "E:/temp/hosts";
         args[3] = "-zk";
-        args[4] = "172.16.2.203:2181";
+        args[4] = "192.168.1.150:2181";
         args[5] = "-pullmode";
-        args[6] = "WATCH";
+        args[6] = "ONCE";
         args[7] = "-c";
         args[8] = "APPEND";
+        args[9] = "-parentZnode";
+        args[10] = "nameservice1";
         return args;
     }
 

@@ -31,10 +31,16 @@ public enum ZKUtils {
     private static final int CONNECTION_TIMEOUT = 5000;
     private CuratorFramework client = null;
     private String connStr = "127.0.0.1:2181";
+    private String namespace = "";
     private Logger logger;
 
-    public void setZk(String conn) {
+    public void setZk(String conn, String parentZnode) {
         this.connStr = conn;
+        if(parentZnode == null || "".equals(parentZnode.trim())){
+            this.namespace = CONSTANTSUTIL.DEFAULT_NS;
+        }else {
+            this.namespace = CONSTANTSUTIL.DEFAULT_NS + "/" + parentZnode.trim();
+        }
     }
 
     private void init() {
@@ -48,7 +54,7 @@ public enum ZKUtils {
                 .sessionTimeoutMs(SESSION_TIMEOUT)
                 .connectionTimeoutMs(CONNECTION_TIMEOUT)
                 .retryPolicy(retryPolicy)
-                .namespace(CONSTANTSUTIL.DEFAULT_NS)        //命名空间隔离
+                .namespace(namespace)        //命名空间隔离
                 .build();
         client.start();
         try {

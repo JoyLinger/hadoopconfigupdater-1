@@ -8,6 +8,9 @@ Use Zookeeper to distribute hadoop config file (Any file less than 1MB, actually
                                     mode, filename(absolute path) will be passed as a
                                     parameter
        -h                         : Print Help Information (default: true)
+       -parentZnode VAL           : Extra parent znode, e.g, /nameservice1 means
+                                    zookeeper client's namespace will be set to
+                                    /hadoopconfig/nameservice1
        -pull                      : Set the Pull Mode (default: false)
        -pullfiles VAL             : Set which files should be pull down(depends on
                                     the name) and where pulled Files should be saved,
@@ -20,7 +23,8 @@ Use Zookeeper to distribute hadoop config file (Any file less than 1MB, actually
        -pushfiles VAL             : Files to be pushed.Both Relative and absolute
                                     path are supported .A comma as a separator.e.g.
                                     /etc/hosts,/etc/services,./stub.sh,makejar.sh
+                                    (default: C:\Windows\System32\drivers\etc/hosts)
        -t [PLAIN | XML | UNKNOWN] : File type: HOSTS/XML/UNKNOWN. (default: PLAIN)
        -v                         : Print file updater version (default: false)
        -zk VAL                    : Zookeeper Addresses List, e.g, 127.0.0.1:2181,127.
-                                    0.0.2:2181 (default: 127.0.0.1:2181) 
+                                    0.0.2:2181 (default: 192.168.1.150:2181)

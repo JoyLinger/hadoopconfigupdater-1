@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class MainApp {
 
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
-    private static final boolean DISABLEPUSH = true;
+    private static final boolean DISABLEPUSH = false;
     private static CuratorFramework client;
 
     public static void main(String[] args) {
@@ -29,7 +29,7 @@ public class MainApp {
                 return;
             }
 
-            getZKClient(cm.getZkStr());
+            getZKClient(cm.getZkStr(), cm.getParentZnode());
             if (cm.isPull()){
                 Puller puller = new Puller(client,cm.getFileType(),cm.getPullFiles(),
                         cm.getPullMode(),cm.getCallBack(),cm.getChangeMode());
@@ -49,8 +49,8 @@ public class MainApp {
         }
     }
 
-    private static void getZKClient(String conn) {
-        ZKUtils.INSTANCE.setZk(conn);
+    private static void getZKClient(String conn, String parentZnode) {
+        ZKUtils.INSTANCE.setZk(conn, parentZnode);
         client =ZKUtils.INSTANCE.getClient();
     }
 

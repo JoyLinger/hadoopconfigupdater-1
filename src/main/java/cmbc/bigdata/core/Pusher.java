@@ -45,7 +45,7 @@ public class Pusher {
                     client.create().forPath(parentPath);
                 }
                 client.setData().forPath(parentPath, fileHandler.fileToBytes());
-                logger.info("Succeed!" + pushFile.getCanonicalPath() + " has been pushed to /" + CONSTANTSUTIL.DEFAULT_NS + parentPath);
+                logger.info("Succeed!" + pushFile.getCanonicalPath() + " has been pushed to /" + client.getNamespace() + parentPath);
             } else if (fileType == FILETYPE.XML) {
                 HashMap<String, String> kvMap = new HashMap<String, String>();
                 XMLHandler xmlHandler = new XMLHandler(pushFile);
